@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Message Form</title>
+    <style>
+        p {
+            background-image: url('bg1.jpg');
+        }
+        body {
+            font-family: Arial, sans-serif;
+
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-color: #fafafa;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body.dark-mode {
+            background-color: #222;
+            color: #fff;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            color: #4CAF50; /* Changed color */
+        }
+
+        .backbtn {
+            text-decoration: none;
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50; /* Changed color */
+            color: #fff;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+
+        .backbtn:hover {
+            background-color: #45a049; /* Changed color */
+        }
+
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.85); /* Slightly lighter background */
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        form input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        /* Updated button styles */
+        .submit-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50; /* Changed color */
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* Loading spinner styles */
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none; /* Initially hidden */
+        }
+
+        /* Updated button hover styles */
+        .submit-button:hover {
+            background-color: #45a049; /* Changed color */
+        }
+
+        a.download-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #4CAF50; /* Changed color */
+        }
+
+        a.download-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Dark mode button styles */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #4CAF50; /* Changed color */
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        /* Footer styles */
+        .footer {
+            position: absolute;
+            top: 90%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            background-color: #4CAF50; /* Changed color */
+            color: #fff;
+            padding: 12px 0;
+        }
+
+        .footer p {
+            font-size: 1.1rem;
+            font-family: 'Arial', sans-serif;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()">&#9728;</button>
+
+<a href="/" class="backbtn">Back</a>
+<h1>Telegram Analysis</h1>
+
+<form method="post" action="{% url 'telegramAnalysis' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <!-- Updated submit button with loading spinner -->
+    <button type="submit" class="submit-button" id="submit-button">
+        Submit
+        <!-- Loading spinner -->
+        <div class="loading-spinner" id="loading-spinner">
+            <img src="spinner.gif" alt="Loading">
+        </div>
+    </button>
+</form>
+
+<!-- Updated footer -->
+<div class="footer">
+    <p>Developed by <b>KCE CSE Team</b></p>
+</div>
+
+<script>
+    function toggleTheme() {
+        const body = document.body;
+        body.classList.toggle('dark-mode');
+    }
+
+    // Function to show loading spinner when form is submitted
+    document.querySelector("form").addEventListener("submit", function(event) {
+        // Prevent form submission for this example (remove this line in your actual code)
+        event.preventDefault();
+
+        // Hide the submit button and show the loading spinner
+        const submitButton = document.getElementById("submit-button");
+        const loadingSpinner = document.getElementById("loading-spinner");
+        submitButton.style.display = "none";
+        loadingSpinner.style.display = "block";
+
+        // Simulate form submission (remove this setTimeout in your actual code)
+        setTimeout(function() {
+            // After a delay (simulating server response time), you can submit the form
+            document.querySelector("form").submit();
+        }, 2000); // Adjust the delay as needed
+    });
+</script>
+</body>
+</html>

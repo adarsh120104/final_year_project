@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Category Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e8f5e9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            color: #2e7d32;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .category-button {
+            background-color: #388e3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-transform: capitalize;
+            transition: background-color 0.3s;
+        }
+
+        .category-button:hover {
+            background-color: #2e7d32;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 20px;
+            color: #1b5e20;
+        }
+
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #388e3c;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        tr:hover {
+            background-color: #f1f8e9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Select a Category</h1>
+    <form method="post" action="{% url 'chart' %}">
+        {% csrf_token %}
+        <button type="submit" name="category" value="Terrorism" class="category-button">Terrorism</button>
+        <button type="submit" name="category" value="Cyber_Space" class="category-button">Cyber Space</button>
+        <button type="submit" name="category" value="Data_Leak" class="category-button">Data Leak</button>
+        <button type="submit" name="category" value="Normal" class="category-button">Normal</button>
+    </form>
+    {% if matching_documents %}
+    <h2>Matching Documents</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Sender ID</th>
+                <th>Date</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for document in matching_documents %}
+            <tr>
+                <td>{{ document.sender_id }}</td>
+                <td>{{ document.date }}</td>
+                <td>{{ document.message }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</body>
+</html>
