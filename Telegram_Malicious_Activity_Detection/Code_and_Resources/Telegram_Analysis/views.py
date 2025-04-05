@@ -38,10 +38,10 @@
 #         if form.is_valid():
 #             group_link = form.cleaned_data["group_link"]
 #
-#             api_id = 24878087
-#             api_hash = "588890997e609d49050223ec030605ca"
-#             phone = "+91 8754181880"
-#             username = "adarsh"
+#             api_id = 
+#             api_hash = ""
+#             phone = ""
+#             username = ""
 #
 #             async def main(phone):
 #                 global new_collection_name
@@ -88,7 +88,7 @@
 #
 #                             # Second verification using Hugging Face API
 #                             API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
-#                             headers = {"Authorization": "Bearer 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"}
+#                             headers = {"Authorization": ""}
 #                             categories = [
 #                                 "hacking and cybercrime",
 #                                 "internet discussions",
@@ -164,11 +164,10 @@ import requests
 from twilio.rest import Client
 
 # Twilio credentials (Replace with your own)
-TWILIO_ACCOUNT_SID = "AC8bbc0328c7ede30ea5713472520c6faa"
-TWILIO_AUTH_TOKEN = "97789b4e3690f09dd75887abec021187"
-TWILIO_WHATSAPP_NUMBER = "whatsapp:+14155238886"  # Twilio sandbox number
-ADMIN_WHATSAPP_NUMBER = "whatsapp:+918754181880"  # Your WhatsApp number
-
+TWILIO_ACCOUNT_SID = ""
+TWILIO_AUTH_TOKEN = ""
+TWILIO_WHATSAPP_NUMBER = "whatsapp:+"  
+ADMIN_WHATSAPP_NUMBER = "whatsapp:+"  
 # Load the model
 model1 = joblib.load(os.path.dirname(__file__) + "\\bestSVCModel.pkl")
 
@@ -192,10 +191,10 @@ async def message_form(request):
         if form.is_valid():
             group_link = form.cleaned_data["group_link"]
 
-            api_id = 24878087
-            api_hash = "588890997e609d49050223ec030605ca"
-            phone = "+91 8754181880"
-            username = "adarsh"
+            api_id = 
+            api_hash = ""
+            phone = "+91 "
+            username = ""
 
             async def main(phone):
                 global new_collection_name
@@ -392,10 +391,10 @@ def send_report(request):
 #         if form.is_valid():
 #             group_link = form.cleaned_data["group_link"]
 #
-#             api_id = 24878087
-#             api_hash = "588890997e609d49050223ec030605ca"
-#             phone = "+91 8754181880"
-#             username = "adarsh"
+#             api_id = 
+#             api_hash = ""
+#             phone = "+91 "
+#             username = ""
 #
 #             async def main(phone):
 #                 global new_collection_name
@@ -442,7 +441,7 @@ def send_report(request):
 #
 #                             # Second verification using Hugging Face API
 #                             API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
-#                             headers = {"Authorization": "Bearer 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"}
+#                             headers = {"Authorization": "Bearer "}
 #                             categories = [
 #                                 "hacking and cybercrime",
 #                                 "internet discussions",
