@@ -1,146 +1,260 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+{% load static %}
 <head>
+    <meta charset="UTF-8">
     <title>Category Selection</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #e8f5e9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url("{% static 'bg2.jpg' %}");
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
             margin: 0;
             padding: 0;
+            color: #e0e8f0;
+            position: relative;
         }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 30, 0.85);
+            z-index: -1;
+        }
+
         h1 {
             text-align: center;
-            margin-top: 20px;
-            color: #2e7d32;
+            margin-top: 40px;
+            font-size: 2.4rem;
+            color: #f5f9fa;
         }
+
         form {
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: 800px;
+            margin: 20px auto;
             padding: 20px;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
         }
+
+        .filter-buttons {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
         .category-button {
-            background-color: #388e3c;
+            background-color: #51bdff;
             color: white;
-            padding: 10px 20px;
+            padding: 10px 15px;
             border: none;
             border-radius: 5px;
+            margin: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             text-transform: capitalize;
-            transition: background-color 0.3s;
         }
+
+        .time-button {
+            background-color: transparent;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            padding: 8px 14px;
+            border-radius: 25px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-transform: capitalize;
+            transition: all 0.3s ease;
+        }
+
+        .time-button:hover,
         .category-button:hover {
-            background-color: #2e7d32;
+            background-color: #275e7e;
         }
-        h2 {
-            text-align: center;
-            margin-top: 20px;
-            color: #1b5e20;
-        }
-        table {
+
+        .messages-section {
             width: 80%;
-            margin: 20px auto;
-            border-collapse: collapse;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
+            margin: 30px auto 100px; /* bottom spacing for footer */
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
         }
+
+        .messages-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .report-button {
+            background-color: #e53935;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .report-button:hover {
+            background-color: #c62828;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
         th, td {
             padding: 12px 16px;
-            text-align: left;
             border-bottom: 1px solid #ddd;
+            color: #f5f9fa;
         }
+
         th {
-            background-color: #388e3c;
-            color: white;
-            text-transform: uppercase;
+            background-color: #0d47a1;
+            position: sticky;
+            top: 0;
         }
+
         tr:hover {
-            background-color: #f1f8e9;
+            background-color: rgba(255, 255, 255, 0.1);
         }
-        .report-button {
-            background-color: red;
-            color: white;
-            padding: 10px;
-            border: none;
-            cursor: pointer;
-            display: block;
-            margin: 20px auto;
-            font-size: 16px;
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            background-color: #0D47A1;
+            color: #fff;
+            padding: 12px 0;
+            z-index: 999;
         }
     </style>
-    <script>
-        function sendReport() {
-            let selectedMessages = [];
-            document.querySelectorAll(".message-checkbox:checked").forEach(checkbox => {
-                selectedMessages.push(checkbox.value);
-            });
-
-            if (selectedMessages.length === 0) {
-                alert("Please select at least one message to report.");
-                return;
-            }
-
-            fetch("{% url 'send_report' %}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "X-CSRFToken": "{{ csrf_token }}"
-                },
-                body: new URLSearchParams({ "selected_messages[]": selectedMessages })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-            })
-            .catch(error => console.error("Error:", error));
-        }
-    </script>
 </head>
 <body>
-    <h1>Select a Category</h1>
-    <form method="post" action="{% url 'chart' %}">
-        {% csrf_token %}
-        <button class="category-button" name="category" value="hacking and cybercrime">Hacking & Cybercrime</button>
-        <button class="category-button" name="category" value="violence">Violence</button>
-        <button class="category-button" name="category" value="normal conversation">Normal Conversation</button>
-        <button class="category-button" name="category" value="movie piracy and illegal streaming">Movie Piracy & Illegal Streaming</button>
-        <button class="category-button" name="category" value="internet discussions">Internet Discussions</button>
-    </form>
 
-    {% if matching_documents %}
-    <h2>Matching Documents</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Select</th>
-                <th>Sender ID</th>
-                <th>Username</th>
-                <th>Date</th>
-                <th>Message</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for document in matching_documents %}
-            <tr>
-                <td><input type="checkbox" class="message-checkbox" value="{{ document.id }}"></td>
-                <td>{{ document.sender_id }}</td>
-                <td>{{ document.sender_username }}</td>
-                <td>{{ document.date }}</td>
-                <td>{{ document.message }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <button class="report-button" onclick="sendReport()">Report Selected Messages</button>
-    {% endif %}
+<h1>Select a Category</h1>
+
+<form id="filter-form" method="POST" action="{% url 'chart' %}">
+    {% csrf_token %}
+    <input type="hidden" name="category" id="category-input" value="{{ selected_category }}">
+    <input type="hidden" name="time_filter" id="time-filter-input">
+
+    <div class="filter-buttons">
+        <button type="button" class="category-button" value="cybercrime">Cybercrime</button>
+        <button type="button" class="category-button" value="hate speech or violence">Hate Speech or Violence</button>
+        <button type="button" class="category-button" value="normal chat">Normal Chat</button>
+        <button type="button" class="category-button" value="movie piracy and illegal streaming">Movie Piracy & Illegal Streaming</button>
+        <button type="button" class="category-button" value="technical discussion">Technical Discussion</button>
+        <button type="button" class="category-button" value="mental health crisis or suicidal thoughts">Mental Health Crisis</button>
+    </div>
+
+    <div class="filter-buttons">
+        <button type="button" class="time-button" value="today">Today</button>
+        <button type="button" class="time-button" value="yesterday">Yesterday</button>
+        <button type="button" class="time-button" value="last_week">Last Week</button>
+        <button type="button" class="time-button" value="one_month">One Month</button>
+        <button type="button" class="time-button" value="three_months">Three Months</button>
+    </div>
+</form>
+
+{% if matching_documents %}
+<div class="messages-section">
+    <div class="messages-header">
+        <h2>Matching Chats</h2>
+        <button class="report-button" onclick="sendReport()">Report Selected</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Sender ID</th>
+                    <th>Username</th>
+                    <th>Date</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for document in matching_documents %}
+                <tr>
+                    <td><input type="checkbox" class="message-checkbox" value="{{ document.id }}"></td>
+                    <td>{{ document.sender_id }}</td>
+                    <td>{{ document.sender_username }}</td>
+                    <td>{{ document.date }}</td>
+                    <td>{{ document.message }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+    <h2 style="text-align:center; margin-top: 30px;">No Messages Found in This Category or Time Period</h2>
+{% endif %}
+
+<div class="footer">
+    <p>Developed by <b>KCE CSE Team</b></p>
+</div>
+
+<script>
+    function sendReport() {
+        const selectedMessages = Array.from(document.querySelectorAll(".message-checkbox:checked"))
+            .map(checkbox => checkbox.value);
+
+        if (selectedMessages.length === 0) {
+            alert("Please select at least one message to report.");
+            return;
+        }
+
+        fetch("{% url 'send_report' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: new URLSearchParams({ "selected_messages[]": selectedMessages })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => console.error("Error:", error));
+    }
+
+    document.querySelectorAll(".category-button").forEach(button => {
+        button.addEventListener("click", function () {
+            document.getElementById("category-input").value = this.value;
+            document.getElementById("filter-form").submit();
+        });
+    });
+
+    document.querySelectorAll(".time-button").forEach(button => {
+        button.addEventListener("click", function () {
+            document.getElementById("time-filter-input").value = this.value;
+            document.getElementById("filter-form").submit();
+        });
+    });
+</script>
+
 </body>
 </html>
