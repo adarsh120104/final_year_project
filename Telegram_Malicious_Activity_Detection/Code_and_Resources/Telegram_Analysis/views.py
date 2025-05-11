@@ -1,151 +1,5 @@
-# from telethon.sync import TelegramClient
-# from telethon.tl.types import PeerChat
-# from telethon import TelegramClient
-# from telethon.tl.functions.messages import GetHistoryRequest
-# from telethon import errors
-# import json
-# from pymongo import MongoClient
-# import base64
-# from .forms import MessageForm
-# from django.shortcuts import render
-# import pymongo
-# from bson import ObjectId
-# from datetime import datetime
-# import os
-# import joblib
-# import requests
-#
-# # Load the model
-# model1 = joblib.load(os.path.dirname(__file__) + "\\bestSVCModel.pkl")
-#
-# mongo_client = MongoClient("mongodb://localhost:27017/")
-# db = mongo_client["telegramDB"]
-#
-# class DateTimeEncoder(json.JSONEncoder):
-#     def default(self, o):
-#         if isinstance(o, datetime):
-#             return o.isoformat()
-#         if isinstance(o, bytes):
-#             return base64.b64encode(o).decode("utf-8")
-#         return super().default(o)
-#
-# new_collection_name = None
-#
-# async def message_form(request):
-#     global new_collection_name
-#     if request.method == "POST":
-#         form = MessageForm(request.POST)
-#         if form.is_valid():
-#             group_link = form.cleaned_data["group_link"]
-#
-#             api_id = 
-#             api_hash = ""
-#             phone = ""
-#             username = ""
-#
-#             async def main(phone):
-#                 global new_collection_name
-#                 telethon_client = TelegramClient(username, api_id, api_hash)
-#                 await telethon_client.start()
-#
-#                 if not await telethon_client.is_user_authorized():
-#                     await telethon_client.send_code_request(phone)
-#                     try:
-#                         await telethon_client.sign_in(phone, input("Enter the code: "))
-#                     except errors.SessionPasswordNeededError:
-#                         await telethon_client.sign_in(password=input("Password: "))
-#
-#                 group = await telethon_client.get_entity(group_link)
-#                 offset_id = 0
-#                 limit = 1000
-#                 all_messages = []
-#
-#                 while True:
-#                     history = await telethon_client(GetHistoryRequest(
-#                         peer=group,
-#                         offset_id=offset_id,
-#                         offset_date=None,
-#                         add_offset=0,
-#                         limit=limit,
-#                         max_id=0,
-#                         min_id=0,
-#                         hash=0,
-#                     ))
-#                     if not history.messages:
-#                         break
-#
-#                     messages = history.messages
-#                     for message in messages:
-#                         if message.message:
-#                             message_dict = {
-#                                 "id": message.id,
-#                                 "sender_id": message.sender_id if hasattr(message, "sender_id") else "Unknown",
-#                                 "sender_username": "Unknown",
-#                                 "date": message.date,
-#                                 "message": message.message,
-#                             }
-#                             category = model1.predict([message.message])[0]
-#
-#                             # Second verification using Hugging Face API
-#                             API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
-#                             headers = {"Authorization": ""}
-#                             categories = [
-#                                 "hacking and cybercrime",
-#                                 "internet discussions",
-#                                 "movie piracy and illegal streaming",
-#                                 "normal conversation",
-#                                 "violence"
-#                             ]
-#
-#                             response = requests.post(
-#                                 API_URL,
-#                                 headers=headers,
-#                                 json={"inputs": message.message, "parameters": {"candidate_labels": categories}}
-#                             )
-#                             hf_category = response.json().get("labels", ["Unknown"])[0]
-#
-#                             message_dict["category"] = category
-#                             message_dict["hf_category"] = hf_category
-#                             all_messages.append(message_dict)
-#
-#                     offset_id = messages[-1].id
-#
-#                 new_collection_name = group.title
-#                 collection = db[new_collection_name]
-#                 collection.delete_many({})
-#                 collection.insert_many(all_messages)
-#
-#                 await telethon_client.disconnect()
-#                 return render(request, "chart.html", {"group_link": group_link})
-#
-#             result = await main(phone)
-#             return result
-#     else:
-#         form = MessageForm()
-#     return render(request, "message_form.html", {"form": form})
-#
-# def chart(request):
-#     global new_collection_name
-#     client = pymongo.MongoClient("mongodb://localhost:27017/")
-#
-#     if request.method == "POST":
-#         selected_category = request.POST.get("category")
-#         collection = db[new_collection_name]
-#
-#         query = {"$or": [
-#             {"category": selected_category},
-#             {"hf_category": selected_category}
-#         ]}
-#         projection = {"_id": 0, "id": 1, "sender_id": 1, "sender_username": 1, "date": 1, "message": 1, "category": 1, "hf_category": 1}
-#
-#         results = list(collection.find(query, projection))
-#         client.close()
-#         return render(request, "chart.html", {"matching_documents": results})
-#
-#     return render(request, "chart.html")
-#
-#
-# # chanegs
+# working code with two models stored locally,sending all kind of reports including emojis
+
 from telethon import TelegramClient
 from telethon.tl.functions.messages import GetHistoryRequest
 from telethon import errors
@@ -153,23 +7,27 @@ import json
 from pymongo import MongoClient
 import base64
 from .forms import MessageForm
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.http import JsonResponse
 import pymongo
-from bson import ObjectId
-from datetime import datetime
-import os
-import joblib
-import requests
+from datetime import datetime, timedelta
 from twilio.rest import Client
+from django.utils import timezone
+# Import transformers for local models
+from transformers import pipeline
 
-# Twilio credentials (Replace with your own)
-TWILIO_ACCOUNT_SID = ""
-TWILIO_AUTH_TOKEN = ""
-TWILIO_WHATSAPP_NUMBER = "whatsapp:+"  
-ADMIN_WHATSAPP_NUMBER = "whatsapp:+"  
-# Load the model
-model1 = joblib.load(os.path.dirname(__file__) + "\\bestSVCModel.pkl")
+# Initialize local models
+bart_classifier = pipeline("zero-shot-classification", model="E:\\final_year_project\\final_year_project\\Telegram_Malicious_Activity_Detection\\Code_and_Resources\\Telegram_Analysis\\models\\bart-large-mnli")
+roberta_classifier = pipeline("zero-shot-classification", model="E:\\final_year_project\\final_year_project\\Telegram_Malicious_Activity_Detection\\Code_and_Resources\\Telegram_Analysis\\models\\roberta-large")
+
+# Twilio
+TWILIO_ACCOUNT_SID = "AC8bbc0328c7ede30ea5713472520c6faa"
+TWILIO_AUTH_TOKEN = "97789b4e3690f09dd75887abec021187"
+TWILIO_WHATSAPP_NUMBER = "whatsapp:+14155238886"
+ADMIN_WHATSAPP_NUMBER = "whatsapp:+918754181880"
+
+
+# model1 = joblib.load(os.path.dirname(__file__) + "\\bestSVCModel.pkl")
 
 mongo_client = MongoClient("mongodb://localhost:27017/")
 db = mongo_client["telegramDB"]
@@ -191,10 +49,10 @@ async def message_form(request):
         if form.is_valid():
             group_link = form.cleaned_data["group_link"]
 
-            api_id = 
-            api_hash = ""
-            phone = "+91 "
-            username = ""
+            api_id = 24878087
+            api_hash = "588890997e609d49050223ec030605ca"
+            phone = "+91 8754181880"
+            username = "adarsh"
 
             async def main(phone):
                 global new_collection_name
@@ -213,6 +71,8 @@ async def message_form(request):
                 limit = 1000
                 all_messages = []
 
+                three_months_ago = timezone.now() - timedelta(days=90)
+
                 while True:
                     history = await telethon_client(GetHistoryRequest(
                         peer=group,
@@ -229,6 +89,9 @@ async def message_form(request):
 
                     messages = history.messages
                     for message in messages:
+                        if message.date < three_months_ago:
+                            continue
+
                         if message.message:
                             if hasattr(message, "sender_id") and message.sender_id:
                                 try:
@@ -238,6 +101,7 @@ async def message_form(request):
                                     sender_username = "Unknown"
                             else:
                                 sender_username = "Unknown"
+
                             message_dict = {
                                 "id": message.id,
                                 "sender_id": message.sender_id if hasattr(message, "sender_id") else "Unknown",
@@ -245,28 +109,43 @@ async def message_form(request):
                                 "date": message.date,
                                 "message": message.message,
                             }
-                            category = model1.predict([message.message])[0]
 
-                            # Second verification using Hugging Face API
-                            API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
-                            headers = {"Authorization": "Bearer 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"}
+                            # category = model1.predict([message.message])[0]
                             categories = [
-                                "hacking and cybercrime",
-                                "internet discussions",
+                                "cybercrime",
                                 "movie piracy and illegal streaming",
-                                "normal conversation",
-                                "violence"
+                                "normal chat",
+                                "hate speech or violence",
+                                "technical discussion",
+                                "mental health crisis or suicidal thoughts"
                             ]
 
-                            response = requests.post(
-                                API_URL,
-                                headers=headers,
-                                json={"inputs": message.message, "parameters": {"candidate_labels": categories}}
-                            )
-                            hf_category = response.json().get("labels", ["Unknown"])[0]
+                            bart_result = bart_classifier(message.message, categories)
+                            bart_scores = bart_result["scores"]
+                            bart_labels = bart_result["labels"]
+                            bart_category = bart_labels[0]
+                            bart_max_score = bart_scores[0]
 
-                            message_dict["category"] = category
-                            message_dict["hf_category"] = hf_category
+                            roberta_result = roberta_classifier(message.message, categories)
+                            roberta_scores = roberta_result["scores"]
+                            roberta_labels = roberta_result["labels"]
+                            roberta_category = roberta_labels[0]
+                            roberta_max_score = roberta_scores[0]
+
+                            if bart_max_score > roberta_max_score:
+                                best_category = bart_category
+                                best_score = bart_max_score
+                            else:
+                                best_category = roberta_category
+                                best_score = roberta_max_score
+
+                            message_dict["roberta_category"] = roberta_category
+                            message_dict["roberta_scores"] = roberta_max_score
+                            message_dict["bart_category"] = bart_category
+                            message_dict["bart_scores"] = bart_max_score
+                            message_dict["best_category"] = best_category
+                            message_dict["best_score"] = best_score
+
                             all_messages.append(message_dict)
 
                     offset_id = messages[-1].id
@@ -288,56 +167,80 @@ async def message_form(request):
 def chart(request):
     global new_collection_name
     client = pymongo.MongoClient("mongodb://localhost:27017/")
+    collection = db[new_collection_name]
 
     if request.method == "POST":
         selected_category = request.POST.get("category")
-        collection = db[new_collection_name]
+        time_filter = request.POST.get("time_filter")
 
-        query = {"$or": [
-            {"category": selected_category},
-            {"hf_category": selected_category}
-        ]}
-        projection = {"_id": 0, "id": 1, "sender_id": 1, "sender_username": 1, "date": 1, "message": 1, "category": 1, "hf_category": 1}
+        query = {
+            "$or": [
+                {"category": selected_category},
+                {"best_category": selected_category}
+            ]
+        }
 
+        if time_filter:
+            now = datetime.now()
+            if time_filter == "today":
+                start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                query["date"] = {"$gte": start}
+            elif time_filter == "yesterday":
+                start = (now - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+                end = start + timedelta(days=1)
+                query["date"] = {"$gte": start, "$lt": end}
+            elif time_filter == "last_week":
+                start = now - timedelta(days=7)
+                query["date"] = {"$gte": start}
+            elif time_filter == "one_month":
+                start = now - timedelta(days=30)
+                query["date"] = {"$gte": start}
+            elif time_filter == "three_months":
+                start = now - timedelta(days=90)
+                query["date"] = {"$gte": start}
+
+        projection = {"_id": 0, "id": 1, "sender_id": 1, "sender_username": 1, "date": 1, "message": 1, "category": 1, "best_category": 1}
         results = list(collection.find(query, projection))
         client.close()
-        return render(request, "chart.html", {"matching_documents": results, "selected_category": selected_category})
+
+        return render(request, "chart.html", {
+            "matching_documents": results,
+            "selected_category": selected_category
+        })
 
     return render(request, "chart.html")
 
+
 def send_report(request):
     if request.method == "POST":
-        selected_messages_str = request.POST.get("selected_messages[]")  # Get the string
+        selected_messages_str = request.POST.get("selected_messages[]")
         if not selected_messages_str:
             return JsonResponse({"status": "error", "message": "No messages selected!"})
 
-        selected_messages = selected_messages_str.split(",")  # Split by comma
+        selected_messages = selected_messages_str.split(",")
 
         try:
-            selected_message_ids = [int(msg_id.strip()) for msg_id in selected_messages]  # Convert to integers safely
+            selected_message_ids = [int(msg_id.strip()) for msg_id in selected_messages]
         except ValueError as e:
             return JsonResponse({"status": "error", "message": f"Invalid message ID format: {selected_messages_str}"})
 
-        # Fetch selected messages from the database
         collection = db[new_collection_name]
         query = {"id": {"$in": selected_message_ids}}
-        projection = {"_id": 0, "sender_id": 1, "sender_username": 1, "message": 1, "category": 1, "hf_category": 1}
+        projection = {"_id": 0, "sender_id": 1, "sender_username": 1, "message": 1, "category": 1, "best_category": 1}
         messages = list(collection.find(query, projection))
 
         if not messages:
             return JsonResponse({"status": "error", "message": "No matching messages found!"})
 
-        # Format message for WhatsApp
         report_text = "🚨 *Reported Messages* 🚨\n\n"
         for msg in messages:
             report_text += f"📌 *Sender ID:* {msg['sender_id']}\n"
             report_text += f"👤 *Username:* {msg['sender_username']}\n"
             report_text += f"💬 *Message:* {msg['message']}\n"
-            final_category = msg.get("hf_category", msg.get("category", "Unknown"))  # Prioritize hf_category
+            final_category = msg.get("best_category", msg.get("category", "Unknown"))
             report_text += f"💬 *Category:* {final_category}\n"
             report_text += "--------------------------\n"
 
-        # Send message via WhatsApp
         client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
         message = client.messages.create(
             from_=TWILIO_WHATSAPP_NUMBER,
@@ -348,155 +251,3 @@ def send_report(request):
         return JsonResponse({"status": "success", "message": "Report sent successfully!"})
 
     return JsonResponse({"status": "error", "message": "Invalid request!"})
-
-#-------------------------------------------------------------------------------------------------------------------------
-# the below is code without reporting
-# from telethon.sync import TelegramClient
-# from telethon.tl.types import PeerChat
-# from telethon import TelegramClient
-# from telethon.tl.functions.messages import GetHistoryRequest
-# from telethon import errors
-# import json
-# from pymongo import MongoClient
-# import base64
-# from .forms import MessageForm
-# from django.shortcuts import render
-# import pymongo
-# from bson import ObjectId
-# from datetime import datetime
-# import os
-# import joblib
-# import requests
-#
-# # Load the model
-# model1 = joblib.load(os.path.dirname(__file__) + "\\bestSVCModel.pkl")
-#
-# mongo_client = MongoClient("mongodb://localhost:27017/")
-# db = mongo_client["telegramDB"]
-#
-# class DateTimeEncoder(json.JSONEncoder):
-#     def default(self, o):
-#         if isinstance(o, datetime):
-#             return o.isoformat()
-#         if isinstance(o, bytes):
-#             return base64.b64encode(o).decode("utf-8")
-#         return super().default(o)
-#
-# new_collection_name = None
-#
-# async def message_form(request):
-#     global new_collection_name
-#     if request.method == "POST":
-#         form = MessageForm(request.POST)
-#         if form.is_valid():
-#             group_link = form.cleaned_data["group_link"]
-#
-#             api_id = 
-#             api_hash = ""
-#             phone = "+91 "
-#             username = ""
-#
-#             async def main(phone):
-#                 global new_collection_name
-#                 telethon_client = TelegramClient(username, api_id, api_hash)
-#                 await telethon_client.start()
-#
-#                 if not await telethon_client.is_user_authorized():
-#                     await telethon_client.send_code_request(phone)
-#                     try:
-#                         await telethon_client.sign_in(phone, input("Enter the code: "))
-#                     except errors.SessionPasswordNeededError:
-#                         await telethon_client.sign_in(password=input("Password: "))
-#
-#                 group = await telethon_client.get_entity(group_link)
-#                 offset_id = 0
-#                 limit = 1000
-#                 all_messages = []
-#
-#                 while True:
-#                     history = await telethon_client(GetHistoryRequest(
-#                         peer=group,
-#                         offset_id=offset_id,
-#                         offset_date=None,
-#                         add_offset=0,
-#                         limit=limit,
-#                         max_id=0,
-#                         min_id=0,
-#                         hash=0,
-#                     ))
-#                     if not history.messages:
-#                         break
-#
-#                     messages = history.messages
-#                     for message in messages:
-#                         if message.message:
-#                             message_dict = {
-#                                 "id": message.id,
-#                                 "sender_id": message.sender_id if hasattr(message, "sender_id") else "Unknown",
-#                                 "sender_username": "Unknown",
-#                                 "date": message.date,
-#                                 "message": message.message,
-#                             }
-#                             category = model1.predict([message.message])[0]
-#
-#                             # Second verification using Hugging Face API
-#                             API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
-#                             headers = {"Authorization": "Bearer "}
-#                             categories = [
-#                                 "hacking and cybercrime",
-#                                 "internet discussions",
-#                                 "movie piracy and illegal streaming",
-#                                 "normal conversation",
-#                                 "violence"
-#                             ]
-#
-#                             response = requests.post(
-#                                 API_URL,
-#                                 headers=headers,
-#                                 json={"inputs": message.message, "parameters": {"candidate_labels": categories}}
-#                             )
-#                             hf_category = response.json().get("labels", ["Unknown"])[0]
-#
-#                             message_dict["category"] = category
-#                             message_dict["hf_category"] = hf_category
-#                             all_messages.append(message_dict)
-#
-#                     offset_id = messages[-1].id
-#
-#                 new_collection_name = group.title
-#                 collection = db[new_collection_name]
-#                 collection.delete_many({})
-#                 collection.insert_many(all_messages)
-#
-#                 await telethon_client.disconnect()
-#                 return render(request, "chart.html", {"group_link": group_link})
-#
-#             result = await main(phone)
-#             return result
-#     else:
-#         form = MessageForm()
-#     return render(request, "message_form.html", {"form": form})
-#
-# def chart(request):
-#     global new_collection_name
-#     client = pymongo.MongoClient("mongodb://localhost:27017/")
-#
-#     if request.method == "POST":
-#         selected_category = request.POST.get("category")
-#         collection = db[new_collection_name]
-#
-#         query = {"$or": [
-#             {"category": selected_category},
-#             {"hf_category": selected_category}
-#         ]}
-#         projection = {"_id": 0, "id": 1, "sender_id": 1, "sender_username": 1, "date": 1, "message": 1, "category": 1, "hf_category": 1}
-#
-#         results = list(collection.find(query, projection))
-#         client.close()
-#         return render(request, "chart.html", {"matching_documents": results})
-#
-#     return render(request, "chart.html")
-
-
-# chanegss
-
